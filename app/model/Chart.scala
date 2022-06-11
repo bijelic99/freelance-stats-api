@@ -26,7 +26,15 @@ object Chart {
       dateFrom: DateTime,
       dateTo: Option[DateTime],
       visualizationData: VisualizationData,
+      dataType: Pie.DataType,
       data: Option[PieData] = None
   ) extends Chart[PieData]
-}
 
+  object Pie {
+    sealed trait DataType
+    case object WorkType extends DataType
+    case object Category extends DataType
+    case object Language extends DataType
+    case object Timezone extends DataType
+  }
+}

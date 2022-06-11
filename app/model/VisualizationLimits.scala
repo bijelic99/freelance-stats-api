@@ -1,7 +1,7 @@
 package model
 
 case class VisualizationLimits(
-    chartClass: Class[_ <: Chart[_]],
+    chartClass: String,
     minW: Int,
     minH: Int,
     maxW: Int,

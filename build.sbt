@@ -15,6 +15,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-json-joda" % "2.9.2"
 )
 
+scalafmtOnCompile := true
+
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.freelance-stats.controllers._"
 
