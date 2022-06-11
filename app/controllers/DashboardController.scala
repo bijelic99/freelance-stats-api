@@ -6,11 +6,11 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import repositories.dashboardRepository.DashboardRepository
 
+import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.chaining._
 
-@Singleton
 class DashboardController @Inject() (
     val controllerComponents: ControllerComponents,
     dashboardRepository: DashboardRepository
@@ -40,7 +40,7 @@ class DashboardController @Inject() (
   def post(): Action[Dashboard] = Action.async(parse.json[Dashboard]) {
     implicit request: Request[Dashboard] =>
       dashboardRepository
-        .add(request.body)
+        .add(request.body.copy(id = UUID.randomUUID().toString))
         .map(dashboard => Ok(Json.toJson(dashboard)))
         .recover { t =>
           log.error("Unexpected error while adding dashboard", t)
