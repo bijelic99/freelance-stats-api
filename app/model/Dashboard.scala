@@ -7,7 +7,7 @@ case class Dashboard(
     ownerId: String,
     usersWithAccess: Seq[String],
     name: String,
-    charts: Seq[Chart[_]],
+    charts: Seq[Chart],
     deleted: Boolean,
     createdAt: DateTime = DateTime.now(),
     modifiedAt: DateTime = DateTime.now(),

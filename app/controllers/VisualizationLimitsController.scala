@@ -11,7 +11,7 @@ class VisualizationLimitsController @Inject() (
     val controllerComponents: ControllerComponents,
     visualizationLimitsConfiguration: VisualizationLimitsConfiguration
 ) extends BaseController {
-  import util.PlayJsonFormats._
+  import utils.PlayJsonFormats._
 
   def get(): Action[AnyContent] = Action {
     implicit request: Request[AnyContent] =>

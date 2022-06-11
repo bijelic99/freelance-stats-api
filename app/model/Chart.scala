@@ -1,8 +1,8 @@
 package model
 
-import akka.http.scaladsl.model.DateTime
+import org.joda.time.DateTime
 
-sealed trait Chart[DataType <: ChartData] {
+sealed trait Chart {
   def id: String
 
   def dashboardId: String
@@ -13,28 +13,26 @@ sealed trait Chart[DataType <: ChartData] {
 
   def dateTo: Option[DateTime]
 
-  def visualizationData: VisualizationData
+  def source: Option[String]
 
-  def data: Option[DataType]
+  def visualizationData: VisualizationData
 }
 
-object Chart {
-  case class Pie(
-      id: String,
-      dashboardId: String,
-      name: String,
-      dateFrom: DateTime,
-      dateTo: Option[DateTime],
-      visualizationData: VisualizationData,
-      dataType: Pie.DataType,
-      data: Option[PieData] = None
-  ) extends Chart[PieData]
+case class PieChart(
+    id: String,
+    dashboardId: String,
+    name: String,
+    dateFrom: DateTime,
+    dateTo: Option[DateTime],
+    source: Option[String],
+    visualizationData: VisualizationData,
+    dataType: PieChart.DataType
+) extends Chart
 
-  object Pie {
-    sealed trait DataType
-    case object WorkType extends DataType
-    case object Category extends DataType
-    case object Language extends DataType
-    case object Timezone extends DataType
-  }
+object PieChart {
+  sealed trait DataType
+  case object WorkType extends DataType
+  case object Category extends DataType
+  case object Language extends DataType
+  case object Timezone extends DataType
 }
