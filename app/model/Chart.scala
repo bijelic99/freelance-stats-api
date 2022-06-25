@@ -9,7 +9,7 @@ sealed trait Chart {
 
   def name: String
 
-  def dateFrom: DateTime
+  def dateFrom: Option[DateTime]
 
   def dateTo: Option[DateTime]
 
@@ -22,7 +22,7 @@ case class PieChart(
     id: String,
     dashboardId: String,
     name: String,
-    dateFrom: DateTime,
+    dateFrom: Option[DateTime],
     dateTo: Option[DateTime],
     source: Option[String],
     visualizationData: VisualizationData,

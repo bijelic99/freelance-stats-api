@@ -2,6 +2,7 @@ package utils
 
 import model.{
   Chart,
+  ChartData,
   Dashboard,
   PieChart,
   PieData,
@@ -45,4 +46,8 @@ object PlayJsonFormats {
   implicit val chartFormat: OFormat[Chart] = Json.format[Chart]
 
   implicit val dashboardFormat: OFormat[Dashboard] = Json.format[Dashboard]
+
+  implicit val pieChartDataFormat: Format[PieData] = Json.format[PieData]
+
+  implicit val chartDataFormat: Format[ChartData] = Json.format[ChartData]
 }

@@ -5,6 +5,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.Json
 import play.api.mvc._
 import repositories.dashboardRepository.DashboardRepository
+import services.DashboardService
 
 import java.util.UUID
 import javax.inject._
@@ -13,7 +14,8 @@ import scala.util.chaining._
 
 class DashboardController @Inject() (
     val controllerComponents: ControllerComponents,
-    dashboardRepository: DashboardRepository
+    dashboardRepository: DashboardRepository,
+    dashboardService: DashboardService
 )(implicit
     ec: ExecutionContext
 ) extends BaseController {
@@ -75,6 +77,17 @@ class DashboardController @Inject() (
         .map(_ => Ok)
         .recover { t =>
           log.error("Unexpected error while deleting dashboard", t)
+          InternalServerError
+        }
+  }
+
+  def getChartData(id: String): Action[AnyContent] = Action.async {
+    implicit request: Request[AnyContent] =>
+      dashboardService
+        .getDashboardChartsData(id)
+        .map(data => Ok(Json.toJson(data)))
+        .recover { t =>
+          log.error("Unexpected error while getting chart data", t)
           InternalServerError
         }
   }
