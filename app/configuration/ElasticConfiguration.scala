@@ -1,13 +1,15 @@
 package configuration
 
-import com.typesafe.config.ConfigFactory
+import play.api.Configuration
 
-class ElasticConfiguration {
+import javax.inject.Inject
 
-  private val configuration = ConfigFactory.load()
+class ElasticConfiguration @Inject() (
+    configuration: Configuration
+) {
 
-  val endpoint: String = configuration.getString("elastic.endpoint")
+  val endpoint: String = configuration.get[String]("elastic.endpoint")
 
-  val index: String = configuration.getString("elastic.index")
+  val index: String = configuration.get[String]("elastic.index")
 
 }
