@@ -33,9 +33,9 @@ class PieChartService @Inject() (
     )
 
   private def aggregation(chart: PieChart): AbstractAggregation = chart match {
-    case PieChart(id, _, _, _, _, _, _, WorkType) =>
+    case PieChart(id, _, _, _, _, _, WorkType) =>
       termsAgg(id, "positionType")
-    case PieChart(id, _, _, _, _, _, _, Category) =>
+    case PieChart(id, _, _, _, _, _, Category) =>
       nestedAggregation(id, "categories")
         .subAggregations(
           filterAgg(s"$id-filter-agg", termQuery("categories.topLevel", true))
@@ -43,9 +43,9 @@ class PieChartService @Inject() (
               termsAgg(s"$id-terms-agg", "categories.name")
             )
         )
-    case PieChart(id, _, _, _, _, _, _, Language) =>
+    case PieChart(id, _, _, _, _, _, Language) =>
       termsAgg(id, "language.names")
-    case PieChart(id, _, _, _, _, _, _, Timezone) =>
+    case PieChart(id, _, _, _, _, _, Timezone) =>
       termsAgg(id, "employer.timezone.name")
   }
 
@@ -57,7 +57,7 @@ class PieChartService @Inject() (
 
   private val parseResponsePF
       : PartialFunction[(PieChart, SearchResponse), ChartData] = {
-    case (PieChart(id, _, _, _, _, _, _, dataType), response)
+    case (PieChart(id, _, _, _, _, _, dataType), response)
         if Seq(WorkType, Language, Timezone).contains(dataType) =>
       val data = response.aggs
         .result[Terms](id)
@@ -69,7 +69,7 @@ class PieChartService @Inject() (
 
   private val parseCategoryResponsePF
       : PartialFunction[(PieChart, SearchResponse), ChartData] = {
-    case (PieChart(id, _, _, _, _, _, _, Category), response) =>
+    case (PieChart(id, _, _, _, _, _, Category), response) =>
       val data = response.aggs
         .nested(id)
         .filter(s"$id-filter-agg")

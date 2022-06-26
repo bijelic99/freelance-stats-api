@@ -5,8 +5,6 @@ import org.joda.time.DateTime
 sealed trait Chart {
   def id: String
 
-  def dashboardId: String
-
   def name: String
 
   def dateFrom: Option[DateTime]
@@ -20,7 +18,6 @@ sealed trait Chart {
 
 case class PieChart(
     id: String,
-    dashboardId: String,
     name: String,
     dateFrom: Option[DateTime],
     dateTo: Option[DateTime],
