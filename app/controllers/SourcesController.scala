@@ -1,22 +1,22 @@
 package controllers
 
-import configuration.VisualizationLimitsConfiguration
+import configuration.SourcesConfiguration
 import play.api.libs.json.Json
 import play.api.mvc._
 
 import javax.inject._
 
 @Singleton
-class VisualizationLimitsController @Inject() (
+class SourcesController @Inject() (
     val controllerComponents: ControllerComponents,
-    visualizationLimitsConfiguration: VisualizationLimitsConfiguration
+    sourcesConfiguration: SourcesConfiguration
 ) extends BaseController {
   import utils.PlayJsonFormats._
 
   def get(): Action[AnyContent] = Action {
     implicit request: Request[AnyContent] =>
       Ok(
-        Json.toJson(visualizationLimitsConfiguration.limits)
+        Json.toJson(sourcesConfiguration.sources)
       )
   }
 }
