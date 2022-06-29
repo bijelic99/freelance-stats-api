@@ -1,0 +1,18 @@
+{
+  "PieChart": {
+    "class": "model.PieChart",
+    "name": "Pie chart",
+    "visualizationLimits": {
+      "minW": 1,
+      "minH": 1,
+      "maxW": 4,
+      "maxH": 5
+    },
+    "dataTypes": [
+      "Category",
+      "Language",
+      "Timezone",
+      "WorkType"
+    ]
+  }
+}

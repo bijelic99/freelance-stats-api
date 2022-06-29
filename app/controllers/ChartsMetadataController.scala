@@ -1,22 +1,20 @@
 package controllers
 
-import configuration.{ChartMetadataConfiguration}
-import play.api.libs.json.Json
 import play.api.mvc._
 
 import javax.inject._
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class ChartsMetadataController @Inject() (
-    val controllerComponents: ControllerComponents,
-    chartMetadataConfiguration: ChartMetadataConfiguration
-) extends BaseController {
-  import utils.PlayJsonFormats._
+    val controllerComponents: ControllerComponents
+)(implicit ec: ExecutionContext)
+    extends BaseController {
 
   def get(): Action[AnyContent] = Action {
     implicit request: Request[AnyContent] =>
-      Ok(
-        Json.toJson(chartMetadataConfiguration.chartsMetadata)
+      Ok.sendResource(
+        "charts-metadata.json"
       )
   }
 }
