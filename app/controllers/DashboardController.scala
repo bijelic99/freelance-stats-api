@@ -43,7 +43,7 @@ class DashboardController @Inject() (
     implicit request: Request[Dashboard] =>
       dashboardRepository
         .add(request.body.copy(id = UUID.randomUUID().toString))
-        .map(dashboard => Ok(Json.toJson(dashboard)))
+        .map(dashboard => Created(Json.toJson(dashboard)))
         .recover { t =>
           log.error("Unexpected error while adding dashboard", t)
           InternalServerError
