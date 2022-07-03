@@ -16,6 +16,14 @@ sealed trait Chart {
   def visualizationData: VisualizationData
 }
 
+object Chart {
+  implicit class ChartOps(chart: Chart) {
+    def setId(id: String): Chart = chart match {
+      case chart: PieChart => chart.copy(id = id)
+    }
+  }
+}
+
 case class PieChart(
     id: String,
     name: String,

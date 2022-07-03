@@ -5,6 +5,7 @@ import play.api.libs.json.Json
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import play.modules.reactivemongo.ReactiveMongoApi
+import reactivemongo.api.bson.BSONDocument
 import reactivemongo.api.bson.collection.BSONCollection
 import reactivemongo.play.json.compat.bson2json._
 import reactivemongo.play.json.compat.json2bson._
@@ -34,7 +35,41 @@ class MongoDashboardRepository @Inject() (
           )
       }
 
-  override def addChart(dashboardId: String, chart: Chart): Future[Dashboard] =
+  override def update(dashboard: Dashboard): Future[Option[Dashboard]] =
+    dashboardsCollection
+      .flatMap(
+        _.findAndUpdate(
+          Json.obj("id" -> dashboard.id),
+          Json.obj("$set" -> dashboard),
+          fetchNewObject = true,
+          upsert = false
+        )
+      )
+      .map(_.value.map(_.asOpt[Dashboard].get))
+
+  override def delete(dashboardId: String): Future[Boolean] =
+    dashboardsCollection
+      .flatMap(
+        _.findAndUpdate(
+          Json.obj("id" -> dashboardId),
+          Json.obj("$set" -> Json.obj("deleted" -> true)),
+          fetchNewObject = true,
+          upsert = false
+        )
+      )
+      .map(_.value.isDefined)
+
+  override def getChart(
+      dashboardId: String,
+      chartId: String
+  ): Future[Option[Chart]] =
+    get(dashboardId)
+      .map(_.flatMap(_.charts.find(_.id.equals(chartId))))
+
+  override def addChart(
+      dashboardId: String,
+      chart: Chart
+  ): Future[Option[Chart]] =
     dashboardsCollection
       .flatMap(
         _.findAndUpdate(
@@ -48,18 +83,48 @@ class MongoDashboardRepository @Inject() (
           upsert = false
         )
       )
-      .map(_.value.map(_.asOpt[Dashboard].get).get)
+      .map(
+        _.value
+          .flatMap(_.asOpt[Dashboard].get.charts.find(_.id.equals(chart.id)))
+      )
 
-  override def removeChart(
+  override def updateChart(
       dashboardId: String,
-      chartId: String
-  ): Future[Dashboard] =
+      chart: Chart
+  ): Future[Option[Chart]] =
     dashboardsCollection
       .flatMap(
         _.findAndUpdate(
           Json.obj("id" -> dashboardId),
           Json.obj(
-            "pull" -> Json.obj(
+            "$set" -> Json.obj(
+              "charts.$[updatedChart]" -> chart
+            )
+          ),
+          arrayFilters = Seq(
+            BSONDocument(
+              "updatedChart.id" -> chart.id
+            )
+          ),
+          fetchNewObject = true,
+          upsert = false
+        )
+      )
+      .map(
+        _.value
+          .flatMap(_.asOpt[Dashboard].get.charts.find(_.id.equals(chart.id)))
+      )
+
+  override def removeChart(
+      dashboardId: String,
+      chartId: String
+  ): Future[Boolean] =
+    dashboardsCollection
+      .flatMap(
+        _.findAndUpdate(
+          Json.obj("id" -> dashboardId),
+          Json.obj(
+            "$pull" -> Json.obj(
               "charts" -> Json.obj("id" -> chartId)
             )
           ),
@@ -67,29 +132,9 @@ class MongoDashboardRepository @Inject() (
           upsert = false
         )
       )
-      .map(_.value.map(_.asOpt[Dashboard].get).get)
-
-  override def update(dashboard: Dashboard): Future[Dashboard] =
-    dashboardsCollection
-      .flatMap(
-        _.findAndUpdate(
-          Json.obj("id" -> dashboard.id),
-          Json.obj("$set" -> dashboard),
-          fetchNewObject = true,
-          upsert = false
-        )
+      .map(
+        _.value
+          .flatMap(_.asOpt[Dashboard])
+          .isDefined
       )
-      .map(_.value.map(_.asOpt[Dashboard].get).get)
-
-  override def delete(dashboardId: String): Future[Unit] =
-    dashboardsCollection
-      .flatMap(
-        _.findAndUpdate(
-          Json.obj("id" -> dashboardId),
-          Json.obj("$set" -> Json.obj("deleted" -> true)),
-          fetchNewObject = false,
-          upsert = false
-        )
-      )
-      .map(_ => ())
 }
