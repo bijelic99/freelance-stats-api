@@ -6,7 +6,7 @@ import com.sksamuel.elastic4s.requests.searches.aggs.responses.bucket.Terms
 import com.sksamuel.elastic4s.requests.searches.queries.Query
 import configuration.ElasticConfiguration
 import model.PieChart.{Category, Language, Timezone, WorkType}
-import model.{ChartData, PieChart, PieData}
+import model.{ChartData, PieChart, PieData, PieDataEntry}
 import org.slf4j.{Logger, LoggerFactory}
 
 import javax.inject.Inject
@@ -62,8 +62,7 @@ class PieChartService @Inject() (
       val data = response.aggs
         .result[Terms](id)
         .buckets
-        .map(bucket => (bucket.key, bucket.docCount.toDouble))
-        .toMap
+        .map(bucket => PieDataEntry(bucket.key, bucket.docCount.toDouble))
       PieData(id, data)
   }
 
@@ -75,8 +74,7 @@ class PieChartService @Inject() (
         .filter(s"$id-filter-agg")
         .result[Terms](s"$id-terms-agg")
         .buckets
-        .map(bucket => (bucket.key, bucket.docCount.toDouble))
-        .toMap
+        .map(bucket => PieDataEntry(bucket.key, bucket.docCount.toDouble))
       PieData(id, data)
   }
 
