@@ -4,6 +4,6 @@ import model.{Chart, ChartData}
 
 import scala.concurrent.Future
 
-trait ChartService[T <: Chart] {
+trait ChartDataService[T <: Chart] {
   def getData(chart: T): Future[ChartData]
 }

@@ -21,6 +21,13 @@ object Chart {
     def setId(id: String): Chart = chart match {
       case chart: PieChart => chart.copy(id = id)
     }
+
+    def setCoordinates(coordinates: (Int, Int)): Chart = chart match {
+      case chart: PieChart =>
+        chart.copy(visualizationData =
+          chart.visualizationData.copy(x = coordinates._1, y = coordinates._2)
+        )
+    }
   }
 }
 

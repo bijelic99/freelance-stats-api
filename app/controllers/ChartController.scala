@@ -39,7 +39,7 @@ class ChartController @Inject() (
 
   def post(dashboardId: String): Action[Chart] =
     Action.async(parse.json[Chart]) { implicit request: Request[Chart] =>
-      dashboardRepository
+      dashboardService
         .addChart(dashboardId, request.body.setId(UUID.randomUUID().toString))
         .map {
           case Some(chart) => Created(Json.toJson(chart))

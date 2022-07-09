@@ -12,14 +12,15 @@ import org.slf4j.{Logger, LoggerFactory}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PieChartService @Inject() (
+class PieChartDataService @Inject() (
     client: ElasticClient,
     elasticConfiguration: ElasticConfiguration
 )(implicit ec: ExecutionContext)
-    extends ChartService[PieChart] {
+    extends ChartDataService[PieChart] {
   import com.sksamuel.elastic4s.ElasticDsl._
 
-  private val log: Logger = LoggerFactory.getLogger(classOf[PieChartService])
+  private val log: Logger =
+    LoggerFactory.getLogger(classOf[PieChartDataService])
 
   private def query(chart: PieChart): Query =
     bool(
