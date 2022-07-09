@@ -16,7 +16,10 @@ class DashboardService @Inject() (
 
   private val log: Logger = LoggerFactory.getLogger(classOf[DashboardService])
 
-  private def calculateCoordinates(dashboard: Dashboard, chart: Chart): (Int, Int) = {
+  private def calculateCoordinates(
+      dashboard: Dashboard,
+      chart: Chart
+  ): (Int, Int) = {
     for {
       maxY <- dashboard.charts
         .maxByOption(_.visualizationData.y)
@@ -43,7 +46,9 @@ class DashboardService @Inject() (
         case Some(dashboard) =>
           repository.addChart(
             dashboardId,
-            chart.setId(UUID.randomUUID().toString).setCoordinates(calculateCoordinates(dashboard, chart))
+            chart
+              .setId(UUID.randomUUID().toString)
+              .setCoordinates(calculateCoordinates(dashboard, chart))
           )
         case None => Future.successful(None)
       }
