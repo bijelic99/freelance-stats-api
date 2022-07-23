@@ -167,14 +167,18 @@ class BubbleChartDataService @Inject() (
       chart: BubbleChart,
       response: SearchResponse
   ): ChartData = {
-    val data = response.aggs.result[Terms](chart.id).buckets.map { bucket =>
-      val average = bucket
-        .getAgg(chart.dataType.productPrefix)
-        .get
-        .dataAsMap("value")
-        .asInstanceOf[Double]
-      KeyValuePair(bucket.key, average)
-    }
+    val data = response.aggs
+      .result[Terms](chart.id)
+      .buckets
+      .map { bucket =>
+        val average = bucket
+          .getAgg(chart.dataType.productPrefix)
+          .get
+          .dataAsMap("value")
+          .asInstanceOf[Double]
+        KeyValuePair(bucket.key, average)
+      }
+      .sortBy(_.name.toInt)
     KeyValueSeqData(chartId = chart.id, data = data)
   }
 

@@ -14,5 +14,20 @@
       "Timezone",
       "WorkType"
     ]
+  },
+  "BubbleChart": {
+    "class": "model.BubbleChart",
+    "name": "Bubble chart",
+    "visualizationLimits": {
+      "minW": 2,
+      "minH": 1,
+      "maxW": 5,
+      "maxH": 2
+    },
+    "dataTypes": [
+      "AverageNumberOfJobsPerHourPerDay",
+      "AverageNumberOfJobsPerDayPerMonth",
+      "AverageNumberOfJobsPerMonthPerYear"
+    ]
   }
 }
