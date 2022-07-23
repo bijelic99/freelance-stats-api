@@ -1,13 +1,13 @@
 package services.chartServices
-import com.sksamuel.elastic4s.{ElasticClient, RequestFailure, RequestSuccess}
-import com.sksamuel.elastic4s.requests.searches.{SearchRequest, SearchResponse}
 import com.sksamuel.elastic4s.requests.searches.aggs.AbstractAggregation
 import com.sksamuel.elastic4s.requests.searches.aggs.responses.bucket.Terms
-import com.sksamuel.elastic4s.requests.searches.queries.Query
+import com.sksamuel.elastic4s.requests.searches.{SearchRequest, SearchResponse}
+import com.sksamuel.elastic4s.{ElasticClient, RequestFailure, RequestSuccess}
 import configuration.ElasticConfiguration
 import model.PieChart.{Category, Language, Timezone, WorkType}
-import model.{ChartData, PieChart, PieData, PieDataEntry}
+import model.{ChartData, KeyValuePair, KeyValueSeqData, PieChart}
 import org.slf4j.{Logger, LoggerFactory}
+import utils.JobsQuery
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -21,17 +21,6 @@ class PieChartDataService @Inject() (
 
   private val log: Logger =
     LoggerFactory.getLogger(classOf[PieChartDataService])
-
-  private def query(chart: PieChart): Query =
-    bool(
-      mustQueries = Seq(
-        chart.dateFrom.map(df => rangeQuery("created").gt(df.toString)),
-        chart.dateTo.map(dt => rangeQuery("created").lt(dt.toString)),
-        chart.source.map(termQuery("source", _))
-      ).flatten,
-      shouldQueries = Nil,
-      notQueries = Nil
-    )
 
   private def aggregation(chart: PieChart): AbstractAggregation = chart match {
     case PieChart(id, _, _, _, _, _, WorkType) =>
@@ -53,7 +42,7 @@ class PieChartDataService @Inject() (
   private def searchRequest(chart: PieChart): SearchRequest =
     search(elasticConfiguration.index)
       .size(0)
-      .query(query(chart))
+      .query(JobsQuery(chart))
       .aggs(aggregation(chart))
 
   private val parseResponsePF
@@ -63,8 +52,8 @@ class PieChartDataService @Inject() (
       val data = response.aggs
         .result[Terms](id)
         .buckets
-        .map(bucket => PieDataEntry(bucket.key, bucket.docCount.toDouble))
-      PieData(id, data)
+        .map(bucket => KeyValuePair(bucket.key, bucket.docCount.toDouble))
+      KeyValueSeqData(id, data)
   }
 
   private val parseCategoryResponsePF
@@ -75,8 +64,8 @@ class PieChartDataService @Inject() (
         .filter(s"$id-filter-agg")
         .result[Terms](s"$id-terms-agg")
         .buckets
-        .map(bucket => PieDataEntry(bucket.key, bucket.docCount.toDouble))
-      PieData(id, data)
+        .map(bucket => KeyValuePair(bucket.key, bucket.docCount.toDouble))
+      KeyValueSeqData(id, data)
   }
 
   private def parseSearchResponse(

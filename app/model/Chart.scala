@@ -19,11 +19,16 @@ sealed trait Chart {
 object Chart {
   implicit class ChartOps(chart: Chart) {
     def setId(id: String): Chart = chart match {
-      case chart: PieChart => chart.copy(id = id)
+      case chart: PieChart    => chart.copy(id = id)
+      case chart: BubbleChart => chart.copy(id = id)
     }
 
     def setCoordinates(coordinates: (Int, Int)): Chart = chart match {
       case chart: PieChart =>
+        chart.copy(visualizationData =
+          chart.visualizationData.copy(x = coordinates._1, y = coordinates._2)
+        )
+      case chart: BubbleChart =>
         chart.copy(visualizationData =
           chart.visualizationData.copy(x = coordinates._1, y = coordinates._2)
         )
@@ -47,4 +52,21 @@ object PieChart {
   case object Category extends DataType
   case object Language extends DataType
   case object Timezone extends DataType
+}
+
+case class BubbleChart(
+    id: String,
+    name: String,
+    dateFrom: Option[DateTime],
+    dateTo: Option[DateTime],
+    source: Option[String],
+    visualizationData: VisualizationData,
+    dataType: BubbleChart.DataType
+) extends Chart
+
+object BubbleChart {
+  sealed trait DataType extends Product
+  case object AverageNumberOfJobsPerHourPerDay extends DataType
+  case object AverageNumberOfJobsPerDayPerMonth extends DataType
+  case object AverageNumberOfJobsPerMonthPerYear extends DataType
 }

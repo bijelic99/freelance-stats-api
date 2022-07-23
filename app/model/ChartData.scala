@@ -4,12 +4,12 @@ sealed trait ChartData {
   def chartId: String
 }
 
-case class PieDataEntry(
+case class KeyValuePair(
     name: String,
     value: Double
 )
 
-case class PieData(
+case class KeyValueSeqData(
     chartId: String,
-    data: Seq[PieDataEntry]
+    data: Seq[KeyValuePair]
 ) extends ChartData

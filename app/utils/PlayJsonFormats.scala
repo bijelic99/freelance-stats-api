@@ -1,13 +1,14 @@
 package utils
 
 import model.{
+  BubbleChart,
   Chart,
   ChartData,
   ChartMetadata,
   Dashboard,
+  KeyValuePair,
+  KeyValueSeqData,
   PieChart,
-  PieData,
-  PieDataEntry,
   Source,
   VisualizationData,
   VisualizationLimits
@@ -24,13 +25,14 @@ object PlayJsonFormats {
   implicit val visualizationData: OFormat[VisualizationData] =
     Json.format[VisualizationData]
 
-  implicit val pieDataEntryFormat: OFormat[PieDataEntry] =
-    Json.format[PieDataEntry]
+  implicit val pieDataEntryFormat: OFormat[KeyValuePair] =
+    Json.format[KeyValuePair]
 
   implicit val chartMetadataFormat: Format[ChartMetadata] =
     Json.format[ChartMetadata]
 
-  implicit val pieDataFormat: OFormat[PieData] = Json.format[PieData]
+  implicit val pieDataFormat: OFormat[KeyValueSeqData] =
+    Json.format[KeyValueSeqData]
 
   implicit val pieDataTypeFormat: Format[PieChart.DataType] =
     Format[PieChart.DataType](
@@ -49,14 +51,39 @@ object PlayJsonFormats {
       }
     )
 
+  implicit val bubbleDataTypeFormat: Format[BubbleChart.DataType] =
+    Format[BubbleChart.DataType](
+      fjs = {
+        case JsString("AverageNumberOfJobsPerHourPerDay") =>
+          JsSuccess(BubbleChart.AverageNumberOfJobsPerHourPerDay)
+        case JsString("AverageNumberOfJobsPerDayPerMonth") =>
+          JsSuccess(BubbleChart.AverageNumberOfJobsPerDayPerMonth)
+        case JsString("AverageNumberOfJobsPerMonthPerYear") =>
+          JsSuccess(BubbleChart.AverageNumberOfJobsPerMonthPerYear)
+        case _ => JsError("Type not recognized")
+      },
+      tjs = {
+        case BubbleChart.AverageNumberOfJobsPerHourPerDay =>
+          JsString("AverageNumberOfJobsPerHourPerDay")
+        case BubbleChart.AverageNumberOfJobsPerDayPerMonth =>
+          JsString("AverageNumberOfJobsPerDayPerMonth")
+        case BubbleChart.AverageNumberOfJobsPerMonthPerYear =>
+          JsString("AverageNumberOfJobsPerMonthPerYear")
+      }
+    )
+
   implicit val pieChartFormat: OFormat[PieChart] =
     Json.format[PieChart]
+
+  implicit val bubbleChartFormat: OFormat[BubbleChart] =
+    Json.format[BubbleChart]
 
   implicit val chartFormat: OFormat[Chart] = Json.format[Chart]
 
   implicit val dashboardFormat: OFormat[Dashboard] = Json.format[Dashboard]
 
-  implicit val pieChartDataFormat: Format[PieData] = Json.format[PieData]
+  implicit val pieChartDataFormat: Format[KeyValueSeqData] =
+    Json.format[KeyValueSeqData]
 
   implicit val chartDataFormat: Format[ChartData] = Json.format[ChartData]
 
