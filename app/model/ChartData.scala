@@ -16,7 +16,7 @@ case class KeyValueSeqData(
 
 case class KeyMultiValueEntry(
     key: String,
-    values: Map[String, Double]
+    values: Map[String, Option[Double]]
 )
 
 case class KeyMultiValueSeqData(

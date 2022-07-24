@@ -126,25 +126,24 @@ class LineChartDataService @Inject() (
 
   private val parseResponseBucketForBudgetAggregations: PartialFunction[
     (LineChart.DataType, DateHistogramBucket),
-    Map[String, Double]
+    Map[String, Option[Double]]
   ] = {
     case (dataType, bucket)
         if Seq(
           LineChart.FixedPriceJobValueInTime,
           LineChart.HourlyJobValueInTime
         ).contains(dataType) =>
-      val minimumAverage: Double =
-        bucket.avg("minimumAverage").valueOpt.getOrElse(0)
-      val maximumAverage: Double =
-        bucket.avg("maximumAverage").valueOpt.getOrElse(0)
-      val averageAverage: Double = bucket
+      val minimumAverage: Option[Double] =
+        bucket.avg("minimumAverage").valueOpt
+      val maximumAverage: Option[Double] =
+        bucket.avg("maximumAverage").valueOpt
+      val averageAverage: Option[Double] = bucket
         .getAgg("averageAverage")
         .flatMap(
           _.dataAsMap
             .get("value")
             .map(_.asInstanceOf[Double])
         )
-        .getOrElse(0)
       Map(
         "minimumAverage" -> minimumAverage,
         "maximumAverage" -> maximumAverage,
@@ -154,7 +153,7 @@ class LineChartDataService @Inject() (
 
   private val parseResponseBucketForCountAggregations: PartialFunction[
     (LineChart.DataType, DateHistogramBucket),
-    Map[String, Double]
+    Map[String, Option[Double]]
   ] = {
     case (dataType, bucket)
         if Seq(
@@ -162,7 +161,7 @@ class LineChartDataService @Inject() (
           LineChart.NumberOfHourlyJobsInTime,
           LineChart.NumberOfFixedPriceJobsInTime
         ).contains(dataType) =>
-      Map("documentCount" -> bucket.docCount.toDouble)
+      Map("documentCount" -> Some(bucket.docCount.toDouble))
   }
 
   private def parseSearchResponse(

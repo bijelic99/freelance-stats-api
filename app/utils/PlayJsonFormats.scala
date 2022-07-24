@@ -17,7 +17,17 @@ import model.{
   VisualizationData,
   VisualizationLimits
 }
-import play.api.libs.json.{Format, JsError, JsString, JsSuccess, Json, OFormat}
+import play.api.libs.json.{
+  Format,
+  JsError,
+  JsNull,
+  JsNumber,
+  JsString,
+  JsSuccess,
+  JsUndefined,
+  Json,
+  OFormat
+}
 
 object PlayJsonFormats {
   import play.api.libs.json.JodaReads._
@@ -31,6 +41,19 @@ object PlayJsonFormats {
 
   implicit val pieDataEntryFormat: OFormat[KeyValuePair] =
     Json.format[KeyValuePair]
+
+  implicit val optionDoubleFormat: Format[Option[Double]] =
+    Format[Option[Double]](
+      fjs = {
+        case JsNumber(value) => JsSuccess(Some(value.toDouble))
+        case JsNull          => JsSuccess(None)
+        case _               => JsError("Type not recognized")
+      },
+      tjs = {
+        case Some(value) => JsNumber(value)
+        case None        => JsNull
+      }
+    )
 
   implicit val keyMultiValueEntryFormat: OFormat[KeyMultiValueEntry] =
     Json.format[KeyMultiValueEntry]
