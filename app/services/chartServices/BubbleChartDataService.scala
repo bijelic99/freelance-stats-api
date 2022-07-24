@@ -178,7 +178,7 @@ class BubbleChartDataService @Inject() (
           .asInstanceOf[Double]
         KeyValuePair(bucket.key, average)
       }
-      .sortBy(_.name.toInt)
+      .sortBy(_.key.toInt)
     KeyValueSeqData(chartId = chart.id, data = data)
   }
 

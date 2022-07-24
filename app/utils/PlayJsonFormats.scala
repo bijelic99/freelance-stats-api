@@ -6,8 +6,12 @@ import model.{
   ChartData,
   ChartMetadata,
   Dashboard,
+  Interval,
+  KeyValueMatrixData,
+  KeyValueMatrixRow,
   KeyValuePair,
   KeyValueSeqData,
+  LineChart,
   PieChart,
   Source,
   VisualizationData,
@@ -28,11 +32,17 @@ object PlayJsonFormats {
   implicit val pieDataEntryFormat: OFormat[KeyValuePair] =
     Json.format[KeyValuePair]
 
-  implicit val chartMetadataFormat: Format[ChartMetadata] =
-    Json.format[ChartMetadata]
+  implicit val keyValueMatrixRowFormat: OFormat[KeyValueMatrixRow] =
+    Json.format[KeyValueMatrixRow]
+
+  implicit val keyValueMatrixDataFormat: OFormat[KeyValueMatrixData] =
+    Json.format[KeyValueMatrixData]
 
   implicit val pieDataFormat: OFormat[KeyValueSeqData] =
     Json.format[KeyValueSeqData]
+
+  implicit val chartMetadataFormat: Format[ChartMetadata] =
+    Json.format[ChartMetadata]
 
   implicit val pieDataTypeFormat: Format[PieChart.DataType] =
     Format[PieChart.DataType](
@@ -72,11 +82,62 @@ object PlayJsonFormats {
       }
     )
 
+  implicit val lineDataTypeFormat: Format[LineChart.DataType] =
+    Format[LineChart.DataType](
+      fjs = {
+        case JsString("FixedPriceJobValueInTime") =>
+          JsSuccess(LineChart.FixedPriceJobValueInTime)
+        case JsString("HourlyJobValueInTime") =>
+          JsSuccess(LineChart.HourlyJobValueInTime)
+        case JsString("NumberOfFixedPriceJobsInTime") =>
+          JsSuccess(LineChart.NumberOfFixedPriceJobsInTime)
+        case JsString("NumberOfHourlyJobsInTime") =>
+          JsSuccess(LineChart.NumberOfHourlyJobsInTime)
+        case JsString("NumberOfJobsInTime") =>
+          JsSuccess(LineChart.NumberOfJobsInTime)
+        case _ => JsError("Type not recognized")
+      },
+      tjs = {
+        case LineChart.FixedPriceJobValueInTime =>
+          JsString("FixedPriceJobValueInTime")
+        case LineChart.HourlyJobValueInTime => JsString("HourlyJobValueInTime")
+        case LineChart.NumberOfFixedPriceJobsInTime =>
+          JsString("NumberOfFixedPriceJobsInTime")
+        case LineChart.NumberOfHourlyJobsInTime =>
+          JsString("NumberOfHourlyJobsInTime")
+        case LineChart.NumberOfJobsInTime =>
+          JsString("FixedPriceJobValueInTime")
+      }
+    )
+
+  implicit val intervalFormat: Format[Interval] = Format[Interval](
+    fjs = {
+      case JsString("Hour")    => JsSuccess(Interval.Hour)
+      case JsString("Day")     => JsSuccess(Interval.Day)
+      case JsString("Week")    => JsSuccess(Interval.Week)
+      case JsString("Month")   => JsSuccess(Interval.Month)
+      case JsString("Quarter") => JsSuccess(Interval.Quarter)
+      case JsString("Year")    => JsSuccess(Interval.Year)
+      case _                   => JsError("Type not recognized")
+    },
+    tjs = {
+      case Interval.Hour    => JsString("Hour")
+      case Interval.Day     => JsString("Day")
+      case Interval.Week    => JsString("Week")
+      case Interval.Month   => JsString("Month")
+      case Interval.Quarter => JsString("Quarter")
+      case Interval.Year    => JsString("Year")
+    }
+  )
+
   implicit val pieChartFormat: OFormat[PieChart] =
     Json.format[PieChart]
 
   implicit val bubbleChartFormat: OFormat[BubbleChart] =
     Json.format[BubbleChart]
+
+  implicit val lineChartFormat: OFormat[LineChart] =
+    Json.format[LineChart]
 
   implicit val chartFormat: OFormat[Chart] = Json.format[Chart]
 

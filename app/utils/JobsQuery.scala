@@ -7,12 +7,14 @@ import model.Chart
 object JobsQuery {
   def apply(chart: Chart): Query =
     bool(
-      mustQueries = Seq(
-        chart.dateFrom.map(df => rangeQuery("created").gt(df.toString)),
-        chart.dateTo.map(dt => rangeQuery("created").lt(dt.toString)),
-        chart.source.map(termQuery("source", _))
-      ).flatten,
+      mustQueries = mustQueries(chart),
       shouldQueries = Nil,
       notQueries = Nil
     )
+
+  def mustQueries(chart: Chart): Seq[Query] = Seq(
+    chart.dateFrom.map(df => rangeQuery("created").gt(df.toString)),
+    chart.dateTo.map(dt => rangeQuery("created").lt(dt.toString)),
+    chart.source.map(termQuery("source", _))
+  ).flatten
 }

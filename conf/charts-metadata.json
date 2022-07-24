@@ -29,5 +29,30 @@
       "AverageNumberOfJobsPerDayPerMonth",
       "AverageNumberOfJobsPerMonthPerYear"
     ]
+  },
+  "LineChart": {
+    "class": "model.LineChart",
+    "name": "Line chart",
+    "visualizationLimits": {
+      "minW": 2,
+      "minH": 1,
+      "maxW": 5,
+      "maxH": 2
+    },
+    "dataTypes": [
+      "FixedPriceJobValueInTime",
+      "HourlyJobValueInTime",
+      "NumberOfFixedPriceJobsInTime",
+      "NumberOfHourlyJobsInTime",
+      "NumberOfJobsInTime"
+    ],
+    "intervals": [
+      "Hour",
+      "Day",
+      "Week",
+      "Month",
+      "Quarter",
+      "Year"
+    ]
   }
 }
