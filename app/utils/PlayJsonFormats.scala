@@ -7,8 +7,8 @@ import model.{
   ChartMetadata,
   Dashboard,
   Interval,
-  KeyValueMatrixData,
-  KeyValueMatrixRow,
+  KeyMultiValueEntry,
+  KeyMultiValueSeqData,
   KeyValuePair,
   KeyValueSeqData,
   LineChart,
@@ -32,11 +32,11 @@ object PlayJsonFormats {
   implicit val pieDataEntryFormat: OFormat[KeyValuePair] =
     Json.format[KeyValuePair]
 
-  implicit val keyValueMatrixRowFormat: OFormat[KeyValueMatrixRow] =
-    Json.format[KeyValueMatrixRow]
+  implicit val keyMultiValueEntryFormat: OFormat[KeyMultiValueEntry] =
+    Json.format[KeyMultiValueEntry]
 
-  implicit val keyValueMatrixDataFormat: OFormat[KeyValueMatrixData] =
-    Json.format[KeyValueMatrixData]
+  implicit val keyMultiValueSeqDataFormat: OFormat[KeyMultiValueSeqData] =
+    Json.format[KeyMultiValueSeqData]
 
   implicit val pieDataFormat: OFormat[KeyValueSeqData] =
     Json.format[KeyValueSeqData]

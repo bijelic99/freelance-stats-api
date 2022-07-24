@@ -14,9 +14,12 @@ case class KeyValueSeqData(
     data: Seq[KeyValuePair]
 ) extends ChartData
 
-case class KeyValueMatrixRow(name: String, elements: Seq[KeyValuePair])
+case class KeyMultiValueEntry(
+    key: String,
+    values: Map[String, Double]
+)
 
-case class KeyValueMatrixData(
+case class KeyMultiValueSeqData(
     chartId: String,
-    rows: Seq[KeyValueMatrixRow]
+    data: Seq[KeyMultiValueEntry]
 ) extends ChartData
