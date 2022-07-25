@@ -158,7 +158,7 @@ class BubbleChartDataService @Inject() (
       .orElse(averageNumberOfJobsPerMonthPerYearAggregation)(chart)
 
   private def searchRequest(chart: BubbleChart): SearchRequest =
-    search(elasticConfiguration.index)
+    search(elasticConfiguration.jobIndex)
       .size(0)
       .query(JobsQuery(chart))
       .aggs(aggregation(chart))

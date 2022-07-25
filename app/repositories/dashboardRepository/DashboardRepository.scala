@@ -1,5 +1,7 @@
 package repositories.dashboardRepository
 
+import akka.Done
+import akka.stream.scaladsl.Source
 import com.google.inject.ImplementedBy
 import model.{Chart, Dashboard}
 
@@ -15,4 +17,5 @@ trait DashboardRepository {
   def addChart(dashboardId: String, chart: Chart): Future[Option[Chart]]
   def updateChart(dashboardId: String, chart: Chart): Future[Option[Chart]]
   def removeChart(dashboardId: String, chartId: String): Future[Boolean]
+  def getAll: Source[Dashboard, Future[Done]]
 }

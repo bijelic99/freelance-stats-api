@@ -6,6 +6,7 @@ import model.{
   ChartData,
   ChartMetadata,
   Dashboard,
+  DashboardMetadata,
   Interval,
   KeyMultiValueEntry,
   KeyMultiValueSeqData,
@@ -172,4 +173,7 @@ object PlayJsonFormats {
   implicit val chartDataFormat: Format[ChartData] = Json.format[ChartData]
 
   implicit val sourceFormat: Format[Source] = Json.format[Source]
+
+  implicit val dashboardMetadataFormat: Format[DashboardMetadata] =
+    Json.format[DashboardMetadata]
 }

@@ -40,7 +40,7 @@ class PieChartDataService @Inject() (
   }
 
   private def searchRequest(chart: PieChart): SearchRequest =
-    search(elasticConfiguration.index)
+    search(elasticConfiguration.jobIndex)
       .size(0)
       .query(JobsQuery(chart))
       .aggs(aggregation(chart))

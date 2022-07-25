@@ -1,4 +1,7 @@
 package repositories.dashboardRepository
+import akka.Done
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
 import model.{Chart, Dashboard}
 import play.api.libs.json.Json
 
@@ -9,11 +12,13 @@ import reactivemongo.api.bson.BSONDocument
 import reactivemongo.api.bson.collection.BSONCollection
 import reactivemongo.play.json.compat.bson2json._
 import reactivemongo.play.json.compat.json2bson._
+import reactivemongo.akkastream.{State, cursorProducer}
 
 class MongoDashboardRepository @Inject() (
     reactiveMongoApi: ReactiveMongoApi
 )(implicit
-    executionContext: ExecutionContext
+    executionContext: ExecutionContext,
+    materializer: Materializer
 ) extends DashboardRepository {
   import utils.PlayJsonFormats._
 
@@ -137,4 +142,13 @@ class MongoDashboardRepository @Inject() (
           .flatMap(_.asOpt[Dashboard])
           .isDefined
       )
+
+  override def getAll: Source[Dashboard, Future[Done]] =
+    Source
+      .futureSource(
+        dashboardsCollection.map(
+          _.find(Json.obj()).cursor[Dashboard]().documentSource()
+        )
+      )
+      .mapMaterializedValue(_.flatten.map(_ => Done))
 }

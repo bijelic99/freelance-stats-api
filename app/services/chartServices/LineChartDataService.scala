@@ -119,7 +119,7 @@ class LineChartDataService @Inject() (
     )
 
   private def searchRequest(chart: LineChart): SearchRequest =
-    search(elasticConfiguration.index)
+    search(elasticConfiguration.jobIndex)
       .size(0)
       .query(query(chart))
       .aggs(aggregation(chart))

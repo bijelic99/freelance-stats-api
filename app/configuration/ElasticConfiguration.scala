@@ -10,6 +10,13 @@ class ElasticConfiguration @Inject() (
 
   val endpoint: String = configuration.get[String]("elastic.endpoint")
 
-  val index: String = configuration.get[String]("elastic.index")
+  val jobIndex: String = configuration.get[String]("elastic.jobIndex")
+
+  val dashboardIndex: String =
+    configuration.get[String]("elastic.dashboardIndex")
+
+  val dashboardReindexBatchSize: Int = configuration
+    .getOptional[Int]("elastic.dashboardReindexBatchSize")
+    .getOrElse(10)
 
 }
