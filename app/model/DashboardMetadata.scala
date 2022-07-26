@@ -5,6 +5,7 @@ import org.joda.time.DateTime
 case class DashboardMetadata(
     id: String,
     ownerId: String,
+    ownerUsername: String,
     usersWithAccess: Seq[String],
     name: String,
     chartNames: Seq[String],
@@ -16,10 +17,11 @@ case class DashboardMetadata(
 )
 
 object DashboardMetadata {
-  def apply(dashboard: Dashboard): DashboardMetadata =
+  def apply(dashboard: Dashboard, ownerUsername: String): DashboardMetadata =
     DashboardMetadata.apply(
       id = dashboard.id,
       ownerId = dashboard.ownerId,
+      ownerUsername = ownerUsername,
       usersWithAccess = dashboard.usersWithAccess,
       name = dashboard.name,
       chartNames = dashboard.charts.map(_.name),

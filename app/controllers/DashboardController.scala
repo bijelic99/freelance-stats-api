@@ -6,6 +6,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import repositories.dashboardRepository.DashboardRepository
 import services.DashboardService
+import services.dashboardIndexService.DashboardIndexService
 
 import java.util.UUID
 import javax.inject._
@@ -14,7 +15,8 @@ import scala.concurrent.ExecutionContext
 class DashboardController @Inject() (
     val controllerComponents: ControllerComponents,
     dashboardRepository: DashboardRepository,
-    dashboardService: DashboardService
+    dashboardService: DashboardService,
+    dashboardIndexService: DashboardIndexService
 )(implicit
     ec: ExecutionContext
 ) extends BaseController {
@@ -86,5 +88,12 @@ class DashboardController @Inject() (
           log.error("Unexpected error while getting chart data", t)
           InternalServerError
         }
+  }
+
+  def reindex(): Action[AnyContent] = Action.async {
+    implicit request: Request[AnyContent] =>
+      dashboardIndexService.reindexDashboards
+        .map(_ => Ok)
+        .recover(t => InternalServerError(t.getMessage))
   }
 }

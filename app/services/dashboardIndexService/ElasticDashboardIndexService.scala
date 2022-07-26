@@ -1,15 +1,11 @@
 package services.dashboardIndexService
 
 import akka.actor.ActorSystem
-import akka.stream.scaladsl.Keep
+import akka.stream.scaladsl.{Keep, Sink}
 import com.sksamuel.elastic4s.{ElasticClient, RequestFailure, RequestSuccess}
-import com.sksamuel.elastic4s.akka.streams.{
-  BatchElasticSink,
-  RequestBuilder,
-  SinkSettings
-}
 import configuration.ElasticConfiguration
 import model.{Dashboard, DashboardMetadata}
+import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.Json
 import repositories.dashboardRepository.DashboardRepository
 
@@ -23,8 +19,11 @@ class ElasticDashboardIndexService @Inject() (
     dashboardRepository: DashboardRepository
 )(implicit ec: ExecutionContext, system: ActorSystem)
     extends DashboardIndexService {
-  import utils.PlayJsonFormats._
   import com.sksamuel.elastic4s.ElasticDsl._
+  import utils.PlayJsonFormats._
+
+  private val log: Logger =
+    LoggerFactory.getLogger(classOf[ElasticDashboardIndexService])
 
   override def indexDashboard(
       dashboardMetadata: DashboardMetadata
@@ -50,30 +49,39 @@ class ElasticDashboardIndexService @Inject() (
 
   override def indexDashboard(dashboard: Dashboard): Future[DashboardMetadata] =
     dashboard
-      .pipe(DashboardMetadata(_))
+      .pipe(DashboardMetadata(_, ""))
       .pipe(indexDashboard)
-
-  implicit val requestBuilder: RequestBuilder[DashboardMetadata] =
-    (t: DashboardMetadata) =>
-      updateById(elasticConfiguration.dashboardIndex, t.id).doc(
-        Json.toJson(t).toString()
-      )
 
   override def reindexDashboards: Future[Unit] =
     dashboardRepository.getAll
-      .map(DashboardMetadata(_))
+      .map(DashboardMetadata(_, ""))
+      .map(metadata =>
+        updateById(elasticConfiguration.dashboardIndex, metadata.id)
+          .docAsUpsert(
+            Json.toJson(metadata).toString()
+          )
+      )
       .grouped(elasticConfiguration.dashboardReindexBatchSize)
+      .mapAsync(1)(requests => client.execute(bulk(requests)))
       .toMat(
-        new BatchElasticSink[DashboardMetadata](
-          client = client,
-          settings = SinkSettings(refreshAfterOp = false)
-        )
-      )(Keep.left)
+        Sink.foreach {
+          case RequestSuccess(_, _, _, result) if !result.hasFailures =>
+            log.trace("Batch indexed successfully")
+          case RequestSuccess(_, _, _, result) =>
+            val failures =
+              result.failures.flatMap(_.error).map(_.reason).mkString(",\n")
+            val message = s"Error while indexing batch, reasons: $failures"
+            log.error(message)
+            throw new Exception(message)
+          case RequestFailure(_, _, _, error) =>
+            throw new Exception("Error while indexing batch", error.asException)
+        }
+      )(Keep.right)
       .run()
       .map(_ => ())
 
   override def searchDashboards(
       term: String,
       offset: Long
-  ): Future[Seq[DashboardMetadata]] = ???
+  ): Future[Seq[DashboardMetadata]] = Future.successful(Nil)
 }
