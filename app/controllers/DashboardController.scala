@@ -96,4 +96,17 @@ class DashboardController @Inject() (
         .map(_ => Ok)
         .recover(t => InternalServerError(t.getMessage))
   }
+
+  def search(term: String, size: Int, from: Int): Action[AnyContent] =
+    Action.async { implicit request: Request[AnyContent] =>
+      dashboardIndexService
+        .searchDashboards(term, None, size, from)
+        .map(Json.toJson(_))
+        .map(Ok(_))
+        .recover { t =>
+          val message = "Unexpected error while searching for dashboards"
+          log.error(message, t)
+          InternalServerError(message)
+        }
+    }
 }

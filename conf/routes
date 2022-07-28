@@ -11,6 +11,7 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 
 GET     /api/v1/charts-metadata                         controllers.ChartsMetadataController.get()
 GET     /api/v1/sources                                 controllers.SourcesController.get()
+GET     /api/v1/dashboard/search                        controllers.DashboardController.search(term: String, size: Int = 10, from: Int = 0)
 GET     /api/v1/dashboard/reindex                       controllers.DashboardController.reindex()
 GET     /api/v1/dashboard/:id                           controllers.DashboardController.get(id)
 POST    /api/v1/dashboard                               controllers.DashboardController.post()

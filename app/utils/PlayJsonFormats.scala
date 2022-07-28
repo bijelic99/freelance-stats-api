@@ -14,6 +14,7 @@ import model.{
   KeyValueSeqData,
   LineChart,
   PieChart,
+  SearchResponse,
   Source,
   VisualizationData,
   VisualizationLimits
@@ -176,4 +177,8 @@ object PlayJsonFormats {
 
   implicit val dashboardMetadataFormat: Format[DashboardMetadata] =
     Json.format[DashboardMetadata]
+
+  implicit val dashboardSearchResponseFormat
+      : Format[SearchResponse[DashboardMetadata]] =
+    Json.format[SearchResponse[DashboardMetadata]]
 }

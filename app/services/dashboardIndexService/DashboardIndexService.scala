@@ -1,7 +1,7 @@
 package services.dashboardIndexService
 
 import com.google.inject.ImplementedBy
-import model.{Dashboard, DashboardMetadata}
+import model.{Dashboard, DashboardMetadata, SearchResponse}
 
 import scala.concurrent.Future
 
@@ -14,6 +14,8 @@ trait DashboardIndexService {
   def reindexDashboards: Future[Unit]
   def searchDashboards(
       term: String,
-      offset: Long
-  ): Future[Seq[DashboardMetadata]]
+      userId: Option[String],
+      size: Int,
+      from: Int
+  ): Future[SearchResponse[DashboardMetadata]]
 }

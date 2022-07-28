@@ -2,9 +2,10 @@ package services.dashboardIndexService
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Keep, Sink}
+import com.sksamuel.elastic4s.requests.searches.queries.Query
 import com.sksamuel.elastic4s.{ElasticClient, RequestFailure, RequestSuccess}
 import configuration.ElasticConfiguration
-import model.{Dashboard, DashboardMetadata}
+import model.{Dashboard, DashboardMetadata, SearchResponse}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.Json
 import repositories.dashboardRepository.DashboardRepository
@@ -80,8 +81,55 @@ class ElasticDashboardIndexService @Inject() (
       .run()
       .map(_ => ())
 
+  private def searchQuery(term: String, userId: Option[String]): Query =
+    boolQuery()
+      .filter(
+        boolQuery()
+          .pipe(query =>
+            userId
+              .fold(query)(userId =>
+                query.should(
+                  termQuery("ownerId", userId),
+                  termQuery("usersWithAccess", userId),
+                  termQuery("public", true)
+                )
+              )
+              .minimumShouldMatch(1)
+          ),
+        termQuery("deleted", false)
+      )
+      .should(
+        matchQuery("name", term),
+        matchQuery("chartNames", term),
+        matchQuery("ownerUsername", term),
+        termQuery("chartSources", term)
+      )
+      .minimumShouldMatch(1)
+
   override def searchDashboards(
       term: String,
-      offset: Long
-  ): Future[Seq[DashboardMetadata]] = Future.successful(Nil)
+      userId: Option[String],
+      size: Int,
+      from: Int
+  ): Future[SearchResponse[DashboardMetadata]] =
+    client
+      .execute(
+        search(elasticConfiguration.dashboardIndex)
+          .query(searchQuery(term, userId))
+          .size(size)
+          .from(from)
+      )
+      .map {
+        case RequestSuccess(_, _, _, result) =>
+          SearchResponse(
+            result.hits.hits.toSeq
+              .map(hit => Json.parse(hit.sourceAsString).as[DashboardMetadata]),
+            result.totalHits
+          )
+        case RequestFailure(_, _, _, error) =>
+          throw new Exception(
+            "Error while searching for data",
+            error.asException
+          )
+      }
 }
