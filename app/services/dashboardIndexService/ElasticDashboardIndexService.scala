@@ -34,7 +34,7 @@ class ElasticDashboardIndexService @Inject() (
         updateById(
           elasticConfiguration.dashboardIndex,
           dashboardMetadata.id
-        ).doc(
+        ).docAsUpsert(
           Json.toJson(dashboardMetadata).toString()
         )
       )
