@@ -81,7 +81,7 @@ class ElasticDashboardIndexService @Inject() (
       .run()
       .map(_ => ())
 
-  private def searchQuery(term: String, userId: Option[String]): Query =
+  private def searchQuery(term: Option[String], userId: Option[String]): Query =
     boolQuery()
       .filter(
         boolQuery()
@@ -98,16 +98,22 @@ class ElasticDashboardIndexService @Inject() (
           ),
         termQuery("deleted", false)
       )
-      .should(
-        matchQuery("name", term),
-        matchQuery("chartNames", term),
-        matchQuery("ownerUsername", term),
-        termQuery("chartSources", term)
+      .pipe(query =>
+        term
+          .fold(query) { term =>
+            query
+              .should(
+                matchQuery("name", term),
+                matchQuery("chartNames", term),
+                matchQuery("ownerUsername", term),
+                termQuery("chartSources", term)
+              )
+              .minimumShouldMatch(1)
+          }
       )
-      .minimumShouldMatch(1)
 
   override def searchDashboards(
-      term: String,
+      term: Option[String],
       userId: Option[String],
       size: Int,
       from: Int

@@ -13,7 +13,7 @@ trait DashboardIndexService {
   def indexDashboard(dashboard: Dashboard): Future[DashboardMetadata]
   def reindexDashboards: Future[Unit]
   def searchDashboards(
-      term: String,
+      term: Option[String],
       userId: Option[String],
       size: Int,
       from: Int

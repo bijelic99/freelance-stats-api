@@ -4,6 +4,7 @@ import model.{Chart, ChartData, Dashboard}
 import org.slf4j.{Logger, LoggerFactory}
 import repositories.dashboardRepository.DashboardRepository
 import services.chartServices.ChartDataServiceRouter
+import services.dashboardIndexService.DashboardIndexService
 
 import java.util.UUID
 import javax.inject.Inject
@@ -11,7 +12,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DashboardService @Inject() (
     repository: DashboardRepository,
-    chartServiceRouter: ChartDataServiceRouter
+    chartServiceRouter: ChartDataServiceRouter,
+    dashboardIndexService: DashboardIndexService
 )(implicit ec: ExecutionContext) {
 
   private val log: Logger = LoggerFactory.getLogger(classOf[DashboardService])
@@ -44,13 +46,49 @@ class DashboardService @Inject() (
       .get(dashboardId)
       .flatMap {
         case Some(dashboard) =>
-          repository.addChart(
-            dashboardId,
-            chart
-              .setId(UUID.randomUUID().toString)
-              .setCoordinates(calculateCoordinates(dashboard, chart))
-          )
+          repository
+            .addChart(
+              dashboardId,
+              chart
+                .setId(UUID.randomUUID().toString)
+                .setCoordinates(calculateCoordinates(dashboard, chart))
+            )
+            .flatMap { maybeChart =>
+              repository
+                .get(dashboardId)
+                .map(_.get)
+                .flatMap(dashboardIndexService.indexDashboard)
+                .map(_ => maybeChart)
+            }
         case None => Future.successful(None)
+      }
+
+  def updateChart(dashboardId: String, chart: Chart): Future[Option[Chart]] =
+    repository
+      .updateChart(dashboardId, chart)
+      .flatMap {
+        case Some(chart) =>
+          repository
+            .get(dashboardId)
+            .map(_.get)
+            .flatMap(dashboardIndexService.indexDashboard)
+            .map(_ => Some(chart))
+        case None =>
+          Future.successful(None)
+      }
+
+  def deleteChart(dashboardId: String, chartId: String): Future[Boolean] =
+    repository
+      .removeChart(dashboardId, chartId)
+      .flatMap {
+        case true =>
+          repository
+            .get(dashboardId)
+            .map(_.get)
+            .flatMap(dashboardIndexService.indexDashboard)
+            .map(_ => true)
+        case false =>
+          Future.successful(false)
       }
 
   def getDashboardChartsData(
@@ -73,5 +111,40 @@ class DashboardService @Inject() (
           val message = s"Dashboard with id of: '$dashboardId' not found"
           log.error(message)
           throw new Exception(message)
+      }
+
+  def addDashboard(dashboard: Dashboard): Future[Dashboard] =
+    repository
+      .add(dashboard.copy(id = UUID.randomUUID().toString))
+      .flatMap { dashboard =>
+        dashboardIndexService
+          .indexDashboard(dashboard)
+          .map(_ => dashboard)
+      }
+
+  def updateDashboard(dashboard: Dashboard): Future[Option[Dashboard]] =
+    repository
+      .update(dashboard)
+      .flatMap(_.map { dashboard =>
+        dashboardIndexService
+          .indexDashboard(dashboard)
+          .map(_ => Some(dashboard))
+      }.getOrElse(Future.successful(None)))
+
+  def deleteDashboard(id: String): Future[Boolean] =
+    repository
+      .delete(id)
+      .flatMap {
+        case true =>
+          repository
+            .get(id)
+            .map(_.get)
+            .flatMap(dashboard =>
+              dashboardIndexService
+                .indexDashboard(dashboard.copy(deleted = true))
+            )
+            .map(_ => true)
+        case false =>
+          Future.successful(false)
       }
 }

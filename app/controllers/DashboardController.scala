@@ -8,7 +8,6 @@ import repositories.dashboardRepository.DashboardRepository
 import services.DashboardService
 import services.dashboardIndexService.DashboardIndexService
 
-import java.util.UUID
 import javax.inject._
 import scala.concurrent.ExecutionContext
 
@@ -42,8 +41,8 @@ class DashboardController @Inject() (
 
   def post(): Action[Dashboard] = Action.async(parse.json[Dashboard]) {
     implicit request: Request[Dashboard] =>
-      dashboardRepository
-        .add(request.body.copy(id = UUID.randomUUID().toString))
+      dashboardService
+        .addDashboard(request.body)
         .map(dashboard => Created(Json.toJson(dashboard)))
         .recover { t =>
           log.error("Unexpected error while adding dashboard", t)
@@ -53,8 +52,8 @@ class DashboardController @Inject() (
 
   def put(): Action[Dashboard] = Action.async(parse.json[Dashboard]) {
     implicit request: Request[Dashboard] =>
-      dashboardRepository
-        .update(request.body)
+      dashboardService
+        .updateDashboard(request.body)
         .map {
           case Some(dashboard) => Ok(Json.toJson(dashboard))
           case None            => NotFound
@@ -67,8 +66,8 @@ class DashboardController @Inject() (
 
   def delete(id: String): Action[AnyContent] = Action.async {
     implicit request: Request[AnyContent] =>
-      dashboardRepository
-        .delete(id)
+      dashboardService
+        .deleteDashboard(id)
         .map {
           case true  => Ok
           case false => NotFound
@@ -97,7 +96,7 @@ class DashboardController @Inject() (
         .recover(t => InternalServerError(t.getMessage))
   }
 
-  def search(term: String, size: Int, from: Int): Action[AnyContent] =
+  def search(term: Option[String], size: Int, from: Int): Action[AnyContent] =
     Action.async { implicit request: Request[AnyContent] =>
       dashboardIndexService
         .searchDashboards(term, None, size, from)

@@ -53,7 +53,7 @@ class ChartController @Inject() (
 
   def put(dashboardId: String): Action[Chart] =
     Action.async(parse.json[Chart]) { implicit request: Request[Chart] =>
-      dashboardRepository
+      dashboardService
         .updateChart(dashboardId, request.body)
         .map {
           case Some(chart) => Ok(Json.toJson(chart))
@@ -67,8 +67,8 @@ class ChartController @Inject() (
 
   def delete(dashboardId: String, chartId: String): Action[AnyContent] =
     Action.async { implicit request: Request[AnyContent] =>
-      dashboardRepository
-        .removeChart(dashboardId, chartId)
+      dashboardService
+        .deleteChart(dashboardId, chartId)
         .map {
           case true  => Ok
           case false => NotFound
