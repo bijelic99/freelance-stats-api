@@ -1,6 +1,7 @@
 package services
 
-import model.{Chart, ChartData, Dashboard}
+import cats.data.OptionT
+import model.{Chart, ChartData, Dashboard, VisualizationData}
 import org.slf4j.{Logger, LoggerFactory}
 import repositories.dashboardRepository.DashboardRepository
 import services.chartServices.ChartDataServiceRouter
@@ -147,4 +148,22 @@ class DashboardService @Inject() (
         case false =>
           Future.successful(false)
       }
+
+  def updateChartsVisualizationData(
+      dashboardId: String,
+      chartIdVisualizationDataMap: Map[String, VisualizationData]
+  ): Future[Option[Dashboard]] =
+    OptionT(
+      repository
+        .get(dashboardId)
+    ).flatMap { dashboard =>
+      val updatedCharts = dashboard.charts.map { chart =>
+        chartIdVisualizationDataMap
+          .get(chart.id)
+          .fold(chart)(chart.setVisualizationData(_))
+      }
+      OptionT(
+        repository.update(dashboard.copy(charts = updatedCharts))
+      )
+    }.value
 }

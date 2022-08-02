@@ -1,6 +1,6 @@
 package controllers
 
-import model.Chart
+import model.{Chart, VisualizationData}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -77,5 +77,25 @@ class ChartController @Inject() (
           log.error("Unexpected error while deleting chart", t)
           InternalServerError
         }
+    }
+
+  def visualizationDataPut(
+      dashboardId: String
+  ): Action[Map[String, VisualizationData]] =
+    Action.async(parse.json[Map[String, VisualizationData]]) {
+      implicit request: Request[Map[String, VisualizationData]] =>
+        dashboardService
+          .updateChartsVisualizationData(dashboardId, request.body)
+          .map {
+            case Some(dashboard) => Ok(Json.toJson(dashboard))
+            case None            => NotFound
+          }
+          .recover { t =>
+            log.error(
+              "Unexpected error while updating chart visualization data",
+              t
+            )
+            InternalServerError
+          }
     }
 }

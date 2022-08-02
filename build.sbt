@@ -16,7 +16,8 @@ libraryDependencies ++= Seq(
   "org.reactivemongo" %% "play2-reactivemongo" % "1.0.10-play28",
   "org.reactivemongo" %% "reactivemongo-play-json-compat" % "1.0.10-play28",
   "org.reactivemongo" %% "reactivemongo-akkastream" % "1.0.10",
-  "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % "7.17.1"
+  "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % "7.17.1",
+  "org.typelevel" %% "cats-core" % "2.8.0"
 )
 
 scalafmtOnCompile := true

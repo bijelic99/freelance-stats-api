@@ -38,6 +38,16 @@ object Chart {
           chart.visualizationData.copy(x = coordinates._1, y = coordinates._2)
         )
     }
+
+    def setVisualizationData(visualizationData: VisualizationData): Chart =
+      chart match {
+        case chart: PieChart =>
+          chart.copy(visualizationData = visualizationData)
+        case chart: BubbleChart =>
+          chart.copy(visualizationData = visualizationData)
+        case chart: LineChart =>
+          chart.copy(visualizationData = visualizationData)
+      }
   }
 }
 
