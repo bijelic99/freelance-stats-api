@@ -1,6 +1,8 @@
 package controllers
 
-import model.{Chart, VisualizationData}
+import com.freelanceStats.jwtAuth.actions.JwtAuthActionBuilder
+import com.freelanceStats.jwtAuth.models.AuthenticatedRequest
+import model.{AccessForbiddenException, Chart, VisualizationData}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -14,7 +16,8 @@ import scala.concurrent.ExecutionContext
 class ChartController @Inject() (
     val controllerComponents: ControllerComponents,
     dashboardRepository: DashboardRepository,
-    dashboardService: DashboardService
+    dashboardService: DashboardService,
+    authActionBuilder: JwtAuthActionBuilder
 )(implicit
     ec: ExecutionContext
 ) extends BaseController {
@@ -24,78 +27,99 @@ class ChartController @Inject() (
   val log: Logger = LoggerFactory.getLogger(classOf[ChartController])
 
   def get(dashboardId: String, chartId: String): Action[AnyContent] =
-    Action.async { implicit request: Request[AnyContent] =>
-      dashboardRepository
-        .getChart(dashboardId, chartId)
-        .map {
-          case Some(chart) => Ok(Json.toJson(chart))
-          case None        => NotFound
-        }
-        .recover { t =>
-          log.error("Unexpected error while getting the chart", t)
-          InternalServerError
-        }
+    authActionBuilder.async {
+      implicit request: AuthenticatedRequest[AnyContent] =>
+        dashboardService
+          .getChart(dashboardId, chartId)(request.user)
+          .map {
+            case Some(chart) => Ok(Json.toJson(chart))
+            case None        => NotFound
+          }
+          .recover {
+            case _: AccessForbiddenException =>
+              Forbidden
+            case t =>
+              log.error("Unexpected error while getting the chart", t)
+              InternalServerError
+          }
     }
 
   def post(dashboardId: String): Action[Chart] =
-    Action.async(parse.json[Chart]) { implicit request: Request[Chart] =>
-      dashboardService
-        .addChart(dashboardId, request.body.setId(UUID.randomUUID().toString))
-        .map {
-          case Some(chart) => Created(Json.toJson(chart))
-          case None        => NotFound
-        }
-        .recover { t =>
-          log.error("Unexpected error while adding chart", t)
-          InternalServerError
-        }
+    authActionBuilder.async(parse.json[Chart]) {
+      implicit request: AuthenticatedRequest[Chart] =>
+        dashboardService
+          .addChart(
+            dashboardId,
+            request.body.setId(UUID.randomUUID().toString)
+          )(request.user)
+          .map {
+            case Some(chart) => Created(Json.toJson(chart))
+            case None        => NotFound
+          }
+          .recover {
+            case _: AccessForbiddenException =>
+              Forbidden
+            case t =>
+              log.error("Unexpected error while adding chart", t)
+              InternalServerError
+          }
     }
 
   def put(dashboardId: String): Action[Chart] =
-    Action.async(parse.json[Chart]) { implicit request: Request[Chart] =>
-      dashboardService
-        .updateChart(dashboardId, request.body)
-        .map {
-          case Some(chart) => Ok(Json.toJson(chart))
-          case None        => NotFound
-        }
-        .recover { t =>
-          log.error("Unexpected error while updating chart", t)
-          InternalServerError
-        }
+    authActionBuilder.async(parse.json[Chart]) {
+      implicit request: AuthenticatedRequest[Chart] =>
+        dashboardService
+          .updateChart(dashboardId, request.body)(request.user)
+          .map {
+            case Some(chart) => Ok(Json.toJson(chart))
+            case None        => NotFound
+          }
+          .recover {
+            case _: AccessForbiddenException =>
+              Forbidden
+            case t =>
+              log.error("Unexpected error while adding chart", t)
+              InternalServerError
+          }
     }
 
   def delete(dashboardId: String, chartId: String): Action[AnyContent] =
-    Action.async { implicit request: Request[AnyContent] =>
-      dashboardService
-        .deleteChart(dashboardId, chartId)
-        .map {
-          case true  => Ok
-          case false => NotFound
-        }
-        .recover { t =>
-          log.error("Unexpected error while deleting chart", t)
-          InternalServerError
-        }
+    authActionBuilder.async {
+      implicit request: AuthenticatedRequest[AnyContent] =>
+        dashboardService
+          .deleteChart(dashboardId, chartId)(request.user)
+          .map {
+            case true  => Ok
+            case false => NotFound
+          }
+          .recover {
+            case _: AccessForbiddenException =>
+              Forbidden
+            case t =>
+              log.error("Unexpected error while adding chart", t)
+              InternalServerError
+          }
     }
 
   def visualizationDataPut(
       dashboardId: String
   ): Action[Map[String, VisualizationData]] =
-    Action.async(parse.json[Map[String, VisualizationData]]) {
-      implicit request: Request[Map[String, VisualizationData]] =>
+    authActionBuilder.async(parse.json[Map[String, VisualizationData]]) {
+      implicit request: AuthenticatedRequest[Map[String, VisualizationData]] =>
         dashboardService
-          .updateChartsVisualizationData(dashboardId, request.body)
+          .updateChartsVisualizationData(dashboardId, request.body)(
+            request.user
+          )
           .map {
             case Some(dashboard) => Ok(Json.toJson(dashboard))
             case None            => NotFound
           }
-          .recover { t =>
-            log.error(
-              "Unexpected error while updating chart visualization data",
-              t
-            )
-            InternalServerError
+          .recover {
+            case _: AccessForbiddenException =>
+              Forbidden
+            case t =>
+              log.error("Unexpected error while adding chart", t)
+              InternalServerError
           }
     }
 }

@@ -1,3 +1,4 @@
+
 name := """freelance-stats-api"""
 organization := "com.freelance-stats"
 
@@ -17,7 +18,8 @@ libraryDependencies ++= Seq(
   "org.reactivemongo" %% "reactivemongo-play-json-compat" % "1.0.10-play28",
   "org.reactivemongo" %% "reactivemongo-akkastream" % "1.0.10",
   "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % "7.17.1",
-  "org.typelevel" %% "cats-core" % "2.8.0"
+  "org.typelevel" %% "cats-core" % "2.8.0",
+  "com.freelance-stats" %% "jwt-auth" % "jwt-auth-0.0.12"
 )
 
 scalafmtOnCompile := true
@@ -27,3 +29,10 @@ scalafmtOnCompile := true
 
 // Adds additional packages into conf/routes
 // play.sbt.routes.RoutesKeys.routesImport += "com.freelance-stats.binders._"
+
+githubTokenSource := TokenSource.GitConfig("github.token")
+
+resolvers ++= Seq(
+  Resolver.githubPackages("bijelic99"),
+  Resolver.githubPackages("jwt-scala")
+)
