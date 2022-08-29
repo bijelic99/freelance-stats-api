@@ -1,5 +1,7 @@
 package controllers
 
+import com.freelanceStats.jwtAuth.actions.JwtAuthActionBuilder
+import com.freelanceStats.jwtAuth.models.AuthenticatedRequest
 import model.Dashboard
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json.Json
@@ -15,7 +17,8 @@ class DashboardController @Inject() (
     val controllerComponents: ControllerComponents,
     dashboardRepository: DashboardRepository,
     dashboardService: DashboardService,
-    dashboardIndexService: DashboardIndexService
+    dashboardIndexService: DashboardIndexService,
+    authActionBuilder: JwtAuthActionBuilder
 )(implicit
     ec: ExecutionContext
 ) extends BaseController {
@@ -24,8 +27,8 @@ class DashboardController @Inject() (
 
   val log: Logger = LoggerFactory.getLogger(classOf[DashboardController])
 
-  def get(id: String): Action[AnyContent] = Action.async {
-    implicit request: Request[AnyContent] =>
+  def get(id: String): Action[AnyContent] = authActionBuilder.async {
+    implicit request: AuthenticatedRequest[AnyContent] =>
       dashboardRepository
         .get(id)
         .map {
@@ -39,35 +42,37 @@ class DashboardController @Inject() (
         }
   }
 
-  def post(): Action[Dashboard] = Action.async(parse.json[Dashboard]) {
-    implicit request: Request[Dashboard] =>
-      dashboardService
-        .addDashboard(request.body)
-        .map(dashboard => Created(Json.toJson(dashboard)))
-        .recover { t =>
-          log.error("Unexpected error while adding dashboard", t)
-          InternalServerError
-        }
-  }
+  def post(): Action[Dashboard] =
+    authActionBuilder.async(parse.json[Dashboard]) {
+      implicit request: AuthenticatedRequest[Dashboard] =>
+        dashboardService
+          .addDashboard(request.body)(request.user)
+          .map(dashboard => Created(Json.toJson(dashboard)))
+          .recover { t =>
+            log.error("Unexpected error while adding dashboard", t)
+            InternalServerError
+          }
+    }
 
-  def put(): Action[Dashboard] = Action.async(parse.json[Dashboard]) {
-    implicit request: Request[Dashboard] =>
-      dashboardService
-        .updateDashboard(request.body)
-        .map {
-          case Some(dashboard) => Ok(Json.toJson(dashboard))
-          case None            => NotFound
-        }
-        .recover { t =>
-          log.error("Unexpected error while editing dashboard", t)
-          InternalServerError
-        }
-  }
+  def put(): Action[Dashboard] =
+    authActionBuilder.async(parse.json[Dashboard]) {
+      implicit request: AuthenticatedRequest[Dashboard] =>
+        dashboardService
+          .updateDashboard(request.body)(request.user)
+          .map {
+            case Some(dashboard) => Ok(Json.toJson(dashboard))
+            case None            => NotFound
+          }
+          .recover { t =>
+            log.error("Unexpected error while editing dashboard", t)
+            InternalServerError
+          }
+    }
 
-  def delete(id: String): Action[AnyContent] = Action.async {
-    implicit request: Request[AnyContent] =>
+  def delete(id: String): Action[AnyContent] = authActionBuilder.async {
+    implicit request: AuthenticatedRequest[AnyContent] =>
       dashboardService
-        .deleteDashboard(id)
+        .deleteDashboard(id)(request.user)
         .map {
           case true  => Ok
           case false => NotFound
@@ -78,10 +83,10 @@ class DashboardController @Inject() (
         }
   }
 
-  def getChartData(id: String): Action[AnyContent] = Action.async {
-    implicit request: Request[AnyContent] =>
+  def getChartData(id: String): Action[AnyContent] = authActionBuilder.async {
+    implicit request: AuthenticatedRequest[AnyContent] =>
       dashboardService
-        .getDashboardChartsData(id)
+        .getDashboardChartsData(id)(request.user)
         .map(data => Ok(Json.toJson(data)))
         .recover { t =>
           log.error("Unexpected error while getting chart data", t)
@@ -89,23 +94,24 @@ class DashboardController @Inject() (
         }
   }
 
-  def reindex(): Action[AnyContent] = Action.async {
-    implicit request: Request[AnyContent] =>
+  def reindex(): Action[AnyContent] = authActionBuilder.async {
+    implicit request: AuthenticatedRequest[AnyContent] =>
       dashboardIndexService.reindexDashboards
         .map(_ => Ok)
         .recover(t => InternalServerError(t.getMessage))
   }
 
   def search(term: Option[String], size: Int, from: Int): Action[AnyContent] =
-    Action.async { implicit request: Request[AnyContent] =>
-      dashboardIndexService
-        .searchDashboards(term, None, size, from)
-        .map(Json.toJson(_))
-        .map(Ok(_))
-        .recover { t =>
-          val message = "Unexpected error while searching for dashboards"
-          log.error(message, t)
-          InternalServerError(message)
-        }
+    authActionBuilder.async {
+      implicit request: AuthenticatedRequest[AnyContent] =>
+        dashboardIndexService
+          .searchDashboards(term, Some(request.user.id), size, from)
+          .map(Json.toJson(_))
+          .map(Ok(_))
+          .recover { t =>
+            val message = "Unexpected error while searching for dashboards"
+            log.error(message, t)
+            InternalServerError(message)
+          }
     }
 }
