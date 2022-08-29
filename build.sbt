@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   "org.reactivemongo" %% "reactivemongo-akkastream" % "1.0.10",
   "com.sksamuel.elastic4s" %% "elastic4s-client-esjava" % "7.17.1",
   "org.typelevel" %% "cats-core" % "2.8.0",
-  "com.freelance-stats" %% "jwt-auth" % "jwt-auth-0.0.12"
+  "com.freelance-stats" %% "jwt-auth" % "jwt-auth-0.0.13"
 )
 
 scalafmtOnCompile := true
