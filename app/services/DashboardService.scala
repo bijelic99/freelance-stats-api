@@ -198,7 +198,7 @@ class DashboardService @Inject() (
         case Some(dashboard)
             if (dashboard.usersWithAccess :+ dashboard.ownerId).contains(
               user.id
-            ) =>
+            ) || dashboard.public =>
           Future
             .sequence {
               dashboard.charts.map { chart =>
