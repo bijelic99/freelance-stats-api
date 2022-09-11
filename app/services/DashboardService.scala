@@ -102,19 +102,7 @@ class DashboardService @Inject() (
         case None => Future.successful(None)
       }
 
-  def userHasAccessToDashboard(
-      dashboardId: String,
-      user: User
-  ): Future[Option[Boolean]] =
-    repository
-      .get(dashboardId)
-      .map(
-        _.map(dashboard =>
-          (dashboard.usersWithAccess :+ dashboard.ownerId).contains(user.id)
-        )
-      )
-
-  def userHasAccessToDashboard2[T](dashboardId: String, user: User)(
+  def userHasAccessToDashboard[T](dashboardId: String, user: User)(
       accessGranted: () => Future[T],
       accessDenied: () => Future[T],
       onNotFound: () => Future[T]
@@ -134,7 +122,7 @@ class DashboardService @Inject() (
       userId: String,
       dashboardId: String,
       chartId: Option[String] = None
-  ): () => T = {
+  ): T = {
     val message =
       s"Access denied, user with id of: '$userId' tried accessing '$dashboardId'${chartId
         .map(cid => s", chart: '$cid'")
@@ -146,7 +134,7 @@ class DashboardService @Inject() (
   def updateChart(dashboardId: String, chart: Chart)(implicit
       user: User
   ): Future[Option[Chart]] =
-    userHasAccessToDashboard2(dashboardId, user)(
+    userHasAccessToDashboard(dashboardId, user)(
       accessGranted = () => {
         repository
           .updateChart(dashboardId, chart)
@@ -162,14 +150,14 @@ class DashboardService @Inject() (
           }
       },
       accessDenied =
-        logAndThrowOnAccessDenied(user.id, dashboardId, chart.id.some),
+        () => logAndThrowOnAccessDenied(user.id, dashboardId, chart.id.some),
       onNotFound = () => Future.successful(None)
     )
 
   def deleteChart(dashboardId: String, chartId: String)(implicit
       user: User
   ): Future[Boolean] =
-    userHasAccessToDashboard2(dashboardId, user)(
+    userHasAccessToDashboard(dashboardId, user)(
       accessGranted = () => {
         repository
           .removeChart(dashboardId, chartId)
@@ -185,7 +173,7 @@ class DashboardService @Inject() (
           }
       },
       accessDenied =
-        logAndThrowOnAccessDenied(user.id, dashboardId, chartId.some),
+        () => logAndThrowOnAccessDenied(user.id, dashboardId, chartId.some),
       onNotFound = () => Future.successful(false)
     )
 
@@ -209,7 +197,7 @@ class DashboardService @Inject() (
             }
             .map(_.toMap)
         case Some(_) =>
-          logAndThrowOnAccessDenied(user.id, dashboardId)()
+          logAndThrowOnAccessDenied(user.id, dashboardId)
         case None =>
           val message = s"Dashboard with id of: '$dashboardId' not found"
           log.error(message)
@@ -230,7 +218,7 @@ class DashboardService @Inject() (
   def updateDashboard(dashboard: Dashboard)(implicit
       user: User
   ): Future[Option[Dashboard]] =
-    userHasAccessToDashboard2(dashboard.id, user)(
+    userHasAccessToDashboard(dashboard.id, user)(
       accessGranted = () => {
         repository
           .update(dashboard)
@@ -240,12 +228,12 @@ class DashboardService @Inject() (
               .map(_ => Some(dashboard))
           }.getOrElse(Future.successful(None)))
       },
-      accessDenied = logAndThrowOnAccessDenied(user.id, dashboard.id),
+      accessDenied = () => logAndThrowOnAccessDenied(user.id, dashboard.id),
       onNotFound = () => Future.successful(None)
     )
 
   def deleteDashboard(id: String)(implicit user: User): Future[Boolean] =
-    userHasAccessToDashboard2(id, user)(
+    userHasAccessToDashboard(id, user)(
       accessGranted = () => {
         repository
           .delete(id)
@@ -263,7 +251,7 @@ class DashboardService @Inject() (
               Future.successful(false)
           }
       },
-      accessDenied = logAndThrowOnAccessDenied(user.id, id),
+      accessDenied = () => logAndThrowOnAccessDenied(user.id, id),
       onNotFound = () => Future.successful(false)
     )
 
@@ -271,7 +259,7 @@ class DashboardService @Inject() (
       dashboardId: String,
       chartIdVisualizationDataMap: Map[String, VisualizationData]
   )(implicit user: User): Future[Option[Dashboard]] =
-    userHasAccessToDashboard2(dashboardId, user)(
+    userHasAccessToDashboard(dashboardId, user)(
       accessGranted = () => {
         OptionT(
           repository
@@ -287,7 +275,7 @@ class DashboardService @Inject() (
           )
         }.value
       },
-      accessDenied = logAndThrowOnAccessDenied(user.id, dashboardId),
+      accessDenied = () => logAndThrowOnAccessDenied(user.id, dashboardId),
       onNotFound = () => Future.successful(None)
     )
 }
