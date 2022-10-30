@@ -131,7 +131,7 @@ object PlayJsonFormats {
         case LineChart.NumberOfHourlyJobsInTime =>
           JsString("NumberOfHourlyJobsInTime")
         case LineChart.NumberOfJobsInTime =>
-          JsString("FixedPriceJobValueInTime")
+          JsString("NumberOfJobsInTime")
       }
     )
 
